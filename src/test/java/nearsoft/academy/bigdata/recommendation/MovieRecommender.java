@@ -24,6 +24,7 @@ import java.util.zip.GZIPInputStream;
  * Created by erick on 19/09/16.
  */
 public class MovieRecommender {
+    //Initialize variables for total counters, cache, hashes and recommender.
     private int tReviews;
     private int tProducts;
     private int tUsers;
@@ -32,18 +33,19 @@ public class MovieRecommender {
     private HashBiMap<String, Integer> userLinkedID = HashBiMap.create();
     private UserBasedRecommender recommender;
     private List<RecommendedItem> recommendations;
-
+    //Constructor
     public MovieRecommender(String dataSourcePath) throws IOException, TasteException {
         if (cache.exists())
             cache.delete();
         else
             cache.createNewFile();
-        System.out.println(cache.getAbsoluteFile());
+        //Open the compressed file and create the hashes.
         File source = new File(dataSourcePath);
         InputStream fileStream = new FileInputStream(source);
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF8");
         readDataAndCreateHash(decoder);
+        //Create the recommender
         DataModel model = new FileDataModel(new File(cache.getAbsolutePath()));
         UserSimilarity similarity = new PearsonCorrelationSimilarity(model);
         UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1,similarity,model);
@@ -92,6 +94,7 @@ public class MovieRecommender {
         int pID=0;
         int uID=0;
         try {
+            //Iterate the lines on the reader of the compressed file.
             while (lt.hasNext()){
                 String line=lt.nextLine();
                 if (line.isEmpty()){
@@ -99,7 +102,6 @@ public class MovieRecommender {
                 }
                 if (line.startsWith("product/productId")){
                     String productID = line.substring(19);
-                    //FileUtils.writeStringToFile(cleanData,productID,true);
                     if (productLikedID.get(productID)==null){
                         productLikedID.put(productID,productLikedID.size()+1);
                     }
@@ -107,7 +109,6 @@ public class MovieRecommender {
                 }
                 if (line.startsWith("review/userId")){
                     String userID = line.substring(15);
-                    //FileUtils.writeStringToFile(cleanData,userID,true);
                     if (userLinkedID.get(userID)==null){
                         userLinkedID.put(userID,userLinkedID.size()+1);
                     }
